@@ -1,0 +1,58 @@
+{
+    "accounts": {
+        "1":{
+            "id": 1,
+            "user":"Will Petersen",
+            "csrf": "acaa16770db76c1ffb9cee51c3cabfcf",
+            "email": "will.petersen@devoxx.xyz",
+            "password": "nH&Cz#5Hd8KT5sG#",
+            "address": "23 rue Jean-Monnet, Goussainville",
+            "phone": "06 71 93 27 17"
+        },
+        "2":{
+            "id": 1,
+            "user":"Lora Garza",
+            "csrf": "2c61ebff5a7f675451467527df66788d",
+            "email": "lora.garza@devoxx.xyz", 
+            "password": "5GlnM2hoFathawEh",
+            "address": "89 rue Nationale, Paris",
+            "phone": "06 37 38 20 28"
+        },
+        "3":{
+            "id": 3,
+            "user":"Kevin Thompson",
+            "csrf": "86280ac8a7f8881407ba060c76d72d6a",
+            "email": "kevin.thompson@devoxx.xyz",
+            "password": "5&5QsEXAapC!o&Ri",
+            "address": "10 Rue de la Pompe, Manosque",
+            "phone": "06 38 17 30 17"
+	},
+        "4":{
+            "id": 4,
+            "user":"Martin Valancia",
+            "csrf": "0cc175b9c0f1b6a831c399e269772661",
+            "email": "martin.valancia@devoxx.xyz",
+            "password": "bMa$e&Y$b6CFXgo8",
+            "address": "80 Boulevard de Normandie, Fontenay-sous-bois",
+            "phone": "06 01 27 17 03"
+	},
+        "5":{
+            "id": 5,
+            "user":"admin",
+            "csrf": "639bae9ac6b3e1a84cebb7b403297b79",
+            "email": "admin@devoxx.xyz",
+            "password": "flag{N0t_A_Str0ng_4cc3s_C0ntr0l}",
+            "address": "xx rue xxx, xxxx",
+            "phone": "xxxx"
+	},
+        "6":{
+            "id": 6,
+            "user":"Linus Torvalds",
+            "csrf": "d6a6bc0db10694a2d90e3a69648f3a03",
+            "email": "linus.torvalds@devoxx.xyz",
+            "password": "G1g4Sh4d_L1nux",
+            "address": "43 rue des Lacs, Herblay",
+            "phone": "06 21 30 20 19"
+	}
+    }
+}

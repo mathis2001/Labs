@@ -33,7 +33,7 @@ api.add_resource(CurrentUser, '/users/me')
 
 @app.route('/')
 def index():
-    return 'API v1.0'
+    return '404 not found'
 
 @app.route('/users')
 def users():

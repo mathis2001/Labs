@@ -1,0 +1,158 @@
+{
+    "missions": {
+        "1": {
+            "missionName": "Project Celestial",
+            "isLaunched": true,
+            "crew": [
+                {
+                    "name": "Sophia Lewis",
+                    "memberID": "f5c2bdfa-952c-4fa5-8889-ffe808084c83",
+                    "role": "Commander",
+                    "background": "Experienced space explorer",
+                    "missions": 5
+                },
+                {
+                    "name": "Daniel Kim",
+                    "memberID": "09a50d6c-bed8-4e86-aa38-5cf96b15a2cc",
+                    "role": "Flight Engineer",
+                    "background": "Mechanical Engineer",
+                    "missions": 2
+                },
+                {
+                    "name": "Olivia Martinez",
+                    "memberID": "09a50d6c-bed8-4e86-aa38-5cf96b15a2cc",
+                    "role": "Scientist",
+                    "background": "Astrophysicist",
+                    "missions": 3
+                }
+            ],
+            "rocket": {
+                "name": "Stellar Explorer",
+                "height": "75 meters",
+                "mass": "1350.621 pounds",
+                "payload": "60.432 pounds"
+            },
+            "launchSite": {
+                "name": "Vandenberg Space Force Base",
+                "location": "California",
+                "GPS coordinates": "34.7420, -120.5724"
+            },
+            "systems": {
+                "operationControl": {
+                    "location": "Los Angeles, California",
+                    "software": {
+                        "name": "CelestialControlOS",
+                        "version": "3.5",
+                        "update": "latest"
+                    },
+                    "hardware": {
+                        "processor": "Hexa-Core",
+                        "memory": "96GB",
+                        "storage": "1.5TB SSD"
+                    }
+                },
+                "launchSystem": {
+                    "rocket": "Stellar Explorer",
+                    "operatingSystem": {
+                        "name": "StellarOS",
+                        "version": "4.2.3"
+                    },
+                    "navigation": {
+                        "system": "StellarNav",
+                        "version": "1.8.2"
+                    }
+                },
+                "Communications": {
+                    "satellites": 5,
+                    "frequency": "8 Ghz",
+                    "encryption": {
+                        "type": "AES",
+                        "keyLength": "256-bit",
+                        "encryptionKey": "svVQxhovQVhpIUYkDxzb2v5R5MywrohR",
+                        "iv": "dc2d82f4bb547ccd328d6f83db4753dd"
+                    },
+                    "messages": {
+                    	"callback": "https://internal-communications.example.xyz:1234/satellite/messages"
+                    }
+                }
+            }
+        },
+        "7": {
+            "missionName": "Operation Winter Contingency",
+            "isLaunched": false,
+            "crew": [
+                {
+                    "name": "John Doe",
+                    "memberID": "0dece064-4727-44b0-89bb-bfbe72da3f01",
+                    "role": "Commander",
+                    "background": "Former Air Force pilot",
+                    "missions": 3
+                },
+                {
+                    "name": "Will Petersen",
+                    "memberID": "7b510a54-6111-4dac-866d-bff558fbcaec",
+                    "role": "Flight Engineer",
+                    "background": "Astrophysicist",
+                    "missions": 2
+                },
+                {
+                    "name": "Lora Garza",
+                    "memberID": "c2206882-f9e5-49ea-ad8c-40f198141a01",
+                    "role": "Scientist",
+                    "background": "Teacher-Researcher",
+                    "missions": 2
+                }
+            ],
+            "rocket": {
+                "name": "Parrot X",
+                "height": "70 meters",
+                "mass": "1210.456 pounds",
+                "payload": "50.265 pounds"
+            },
+            "launchSite": {
+                "name": "Cap Canaveral",
+                "location": "Florida",
+                "GPS coordinates": "28.396837, -80.605659"
+            },
+            "systems": {
+                "operationControl": {
+                    "location": "Houston, Texas",
+                    "software": {
+                        "name": "HaloControlOS",
+                        "version": "3.21",
+                        "update": "latest"
+                    },
+                    "hardware": {
+                        "processor": "Quad-Core",
+                        "memory": "64GB",
+                        "storage": "1TB SSD"
+                    }
+                },
+                "launchSystem": {
+                    "rocket": "Parrot X",
+                    "operatingSystem": {
+                        "name": "ParrotXOS",
+                        "version": "5.4.1"
+                    },
+                    "navigation": {
+                        "system": "StarNav",
+                        "version": "1.9.3"
+                    }
+                },
+                "Communications": {
+                    "satellites": 4,
+                    "frequency": "8 Ghz",
+                    "encryption": {
+                        "type": "AES",
+                        "keyLength": "256-bit",
+                        "encryptionKey": "flag{N0t_A_Str0ng_4cc3s_C0ntr0l}",
+                        "iv": "5545462dcd81760b1142297c163e46ce"
+                    },
+                    "messages": {
+                    	"callback": "https://internal-communications.example.xyz:1234/satellite/messages"
+                    }
+                }
+            }
+        }
+    }
+}

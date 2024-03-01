@@ -5,6 +5,7 @@ Volontary vulnerable REST API integration
 ## Objective
 
 3 flags are hidden and can be discovered by exploiting the API.
+/!\ Do not use the source code
 
 ## Setup
 

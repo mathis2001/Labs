@@ -1,15 +1,41 @@
-from flask import Flask, request, abort
+from flask import Flask, request, abort, Response
 from flask_restful import Api, Resource, reqparse
 from flasgger import Swagger, swag_from
+from functools import wraps
 import requests
 import json
+
+def requires_basic_auth(f):
+
+    def check_auth(username, password):
+        return username == "guest" and password == "guest"
+
+    def authenticate():
+        return Response(
+            "Authentication required.", 401,
+            {"WWW-Authenticate": "Basic realm='Login Required'"},
+        )
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if __name__ != "__main__":
+            return f(*args, **kwargs)
+
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+
+    return decorated
 
 app = Flask(__name__)
 api = Api(app)
 
-swagger = Swagger(app)
+swagger = Swagger(app, decorators=[ requires_basic_auth ])
+
 
 missioninfo = json.load(open('missioninfo.json', 'r'))
+
 
 def jsonresponse(data):
     response = app.response_class(
@@ -54,6 +80,8 @@ class missionCrewV2(Resource):
           type: string
         - in: body
           name: crew
+          consumes:
+            - application/json
           required: true
           schema:
             type: object
@@ -87,13 +115,15 @@ class missionCrewV2(Resource):
           name: id
           required: true
           type: string
-        - in: query
+        - in: body
           name: memberID
+          consumes:
+            - application/json
           required: true
           schema:
             type: object
             properties:
-              name:
+              memberID:
                 type: string
         responses:
           200:
@@ -141,9 +171,9 @@ class missionCrewV1(Resource):
                 del crew_members[member_index]
                 return 'Successfully deleted crew member from the mission, well done ! flag{N0_St4rs_4nym0re}', 200
             else:
-                return f'Member not found for id: {args.memberID}', 404
+                return abort(404, f'Member not found for id: {args.memberID}')
         except KeyError:
-            return 'Invalid mission id', 404
+            return abort(404, 'Invalid mission id')
 
 
 
@@ -242,7 +272,7 @@ class missionComV2(Resource):
         return abort(403, 'You are not authorized to access this endpoint')
     def patch(self, id):
         """
-        Replace the current callback url for communications between the ground control and the crew (under development)
+        This endpoint have been deprecated (hackers loves deprecated features ;p)
         ---
         tags:
           - Communications
@@ -251,6 +281,13 @@ class missionComV2(Resource):
           name: id
           required: true
           type: string
+        - in: body
+          consumes:
+            - application/json
+          name: xxx
+          required: true
+          type: string
+          description: Maybe you should think to fuzz that endpoint
         responses:
           200:
             description: ...
@@ -306,11 +343,11 @@ class missionComV1(Resource):
                         else:
                             return f'Error sending request to {callback_url}', response.status_code
                     else:
-                        return 'Invalid url'
+                        return abort(403, 'Invalid callback_url')
                 else:
-                    return 'Communications system not found for the given mission id', 404
+                    return abort(404, 'Communications system not found for the given mission id')
             except KeyError:
-                return 'Invalid mission id', 404
+                return abort(404, 'Invalid mission id')
         else:
             return abort(404, 'Rocket not launched')
 
@@ -380,10 +417,6 @@ api.add_resource(missionPublicV1, '/api/v1/public/missions')
 @app.route('/')
 def index():
     return '404 not found'
-
-@app.route('/api/v1/IsAuthorized')
-def IsAuthorized():
-    return '{"IsAuthorized":false}'
 
 @app.route('/api/v2/<path:subpath>')
 @app.route('/api/v1/<path:subpath>')

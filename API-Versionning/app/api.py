@@ -294,7 +294,12 @@ class missionComV1(Resource):
                         messages_content = messages_file.read()
 
                     if callback_url.startswith("https://internal-communications.example.xyz"):
-                        response = requests.post(callback_url, data=messages_content)
+                        headers = {
+                            'user-agent': 'StellarOS/4.2.3',
+                            'X-Satellite': '2',
+                            'X-Rocket': 'Stellar Explorer'
+                        }
+                        response = requests.post(callback_url, data=messages_content, headers=headers)
 
                         if response.status_code == 200:
                             return 'Callback URL changed successfully', 200
@@ -389,4 +394,4 @@ def Unauthorized(subpath):
         return abort(404, 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.') 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=1337, debug=True)
+    app.run(host='0.0.0.0', port=1337)

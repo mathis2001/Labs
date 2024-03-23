@@ -6,12 +6,45 @@
 <body>
 <h1> {{ config.TITLE }} </h1>
 
-<form action="/ssrf1">
-    <input type="text" name="url" placeholder="https://example.com">
-    <button type="submit">Confirm</button>
-</form>
+<a href="/ssrf1">
+    <button>SSRF 0-Protection</button>
+</a>
 
-<h2> {{ result }} </h2>
+<a href="/ssrf2">
+    <button>SSRF - Classic</button>
+</a>
+
+<a href="/ssrf3">
+    <button>SSRF - Classic (Blind)</button>
+</a>
+
+<a href="/ssrf4">
+    <button>SSRF - Extension Check</button>
+</a>
+
+<a href="/ssrf5">
+    <button>SSRF - Whitelist</button>
+</a>
+
+<a href="/ssrf6">
+    <button>SSRF - Whitelist 2</button>
+</a>
+
+<a href="/ssrf7">
+    <button>SSRF - Redirect</button>
+</a>
+
+<a href="/ssrf8">
+    <button>SSRF - IP</button>
+</a>
+
+<a href="/ssrf9">
+    <button>SSRF - PDF</button>
+</a>
+
+<a href="/ssrf10">
+    <button>SSRF - File upload</button>
+</a>
 
 <style>
 @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");

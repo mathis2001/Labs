@@ -6,25 +6,14 @@
 <body>
 <h1> {{ config.TITLE }} </h1>
 
-<form action="/redirect">
-    <input type="text" name="redirect_url" placeholder="https://example.com">
-    <button type="submit">Redirect</button>
-</form>
-
-<h2> {{ result_OR }} </h2>
-
-<form action="/ssrf7">
+<form action="/ssrf1">
     <input type="text" name="url" placeholder="https://example.com">
     <button type="submit">Confirm</button>
 </form>
 
 <h2> {{ result }} </h2>
 
-<a href="/ssrf6">
-    <button>Previous</button>
-</a>
-
-<a href="/ssrf8">
+<a href="/ssrf2">
     <button>Next</button>
 </a>
 

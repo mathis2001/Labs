@@ -10,18 +10,22 @@ from werkzeug.utils import secure_filename
 app = design.Design(Flask(__name__), __file__, 'SSRF - Lab')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 @app.route('/ssrf1')
 def fetch_ssrf1():
     url = request.args.get('url')
     if not url:
-        return render_template('index.html', result='No URL provided!')
+        return render_template('ssrf1.html', result='No URL provided!')
     try:
         with urllib.request.urlopen(url) as response:
             content = response.read()
         
-        return render_template('index.html', result=content)
+        return render_template('ssrf1.html', result=content)
     except Exception as e:
-        return render_template('index.html', result=f'Error: {str(e)}')
+        return render_template('ssrf1.html', result=f'Error: {str(e)}')
 
 @app.route('/ssrf2')
 def fetch_ssrf2():

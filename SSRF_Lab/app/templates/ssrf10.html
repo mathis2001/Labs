@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> {{ config.TITLE }} </title>
+</head>
+<body>
+<h1> {{ config.TITLE }} </h1>
+<body>
+    <h1>Upload an Image</h1>
+    <form action="/ssrf10" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+<style>
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+body {
+    padding: 2%;
+    font-family: "VT323", monospace;
+    background-color: #000;
+    color: white;
+}
+input, button {
+    padding: 10px;
+    background-color: rgb(10, 10, 10);
+    border: 2px solid #09d8c4;
+    border-radius: 10px;
+    color: white;
+}
+#Vcode {
+    z-index: -1;
+    opacity: 0.8;
+    position: absolute;
+    transform: translate(-100%, -100%);
+    top: 96%;
+    left: 98%;
+    word-wrap: break-word;
+    padding: 2%;
+    background-color: rgb(10, 10, 10);
+    border: 2px solid #09d8c4;
+    border-radius: 10px;
+    font-size: 14px;
+}
+</style>
+</body>
+</html>

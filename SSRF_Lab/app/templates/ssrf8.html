@@ -6,12 +6,29 @@
 <body>
 <h1> {{ config.TITLE }} </h1>
 
-<form action="/ssrf8">
-    <input type="text" name="url" placeholder="https://example.com">
-    <button type="submit">Confirm</button>
+<a href="/download_example_xml">
+    <button>Download template</button>
+</a>
+
+<h1>Upload your data</h1>
+<form action="/ssrf8" method="post" enctype="multipart/form-data">
+    <input type="file" name="file">
+    <input type="submit" value="Upload">
 </form>
 
 <h2> {{ result }} </h2>
+
+{% if name %}
+    <p>Name: {{ name }}</p>
+{% endif %}
+    
+{% if product_id %}
+    <p>Product ID: {{ product_id }}</p>
+{% endif %}
+
+{% if error %}
+    <p style="color: red;">{{ error }}</p>
+{% endif %}
 
 <a href="/ssrf7">
     <button>Previous</button>

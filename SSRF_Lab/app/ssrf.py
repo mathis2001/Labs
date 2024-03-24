@@ -1,9 +1,10 @@
 import re
-from flask import Flask, render_template, request, redirect, send_file, send_from_directory
+from flask import Flask, render_template, request, redirect, send_file, send_from_directory, make_response
 import requests
 import urllib.request
 from io import BytesIO
 from weasyprint import HTML
+from lxml import etree
 from ignore.design import design
 from werkzeug.utils import secure_filename
 
@@ -143,20 +144,46 @@ def open_redirect():
     else:
         return render_template('ssrf7.html', result='No redirect URL provided.')
 
+@app.route('/download_example_xml')
+def download_example_xml():
+    example_xml_content = """
+<product>
+    <name>DefaultName</name>
+    <id>DefaultID</id>
+</product>
+    """
+    response = make_response(example_xml_content)
+    response.headers['Content-Disposition'] = 'attachment; filename=template.xml'
+    response.headers['Content-Type'] = 'text/xml'
+    return response
 
-@app.route('/ssrf8')
-def fetch_ssrf8():
-    internal_ip_regex = re.compile(r'(^127\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)')
-    url = request.args.get('url')
-    if not url:
-        return 'No URL provided!'
 
-    # Check if the URL contains a private IP address
-    if private_ip_regex.search(url):
-        return 'Private IP address detected. Access denied.'
-    else:
-        return 'No private IP address detected. Access allowed.'
+@app.route('/ssrf8', methods=['GET', 'POST'])
+def submit_product():
+    try:
+        uploaded_file = request.files['file']
 
+        if not uploaded_file:
+            return render_template('ssrf8.html', error='Please, upload a file.')
+
+        xml_data = uploaded_file.read()
+
+        if not xml_data:
+            return render_template('ssrf8.html', error='File empty')
+
+        parser = etree.XMLParser(resolve_entities=True)
+        root = etree.fromstring(xml_data, parser)
+
+        if root is None:
+            return render_template('ssrf8.html', error='Root empty')
+
+        name = root.find('name').text if root.find('name') is not None else 'DefaultName'
+        product_id = root.find('.//id').text if root.find('.//id') is not None else 'DefaultID'
+
+        return render_template('ssrf8.html', result='Data successfully updated.', name=name, product_id=product_id)
+
+    except Exception as e:
+        return render_template('ssrf8.html', error=f'Please, upload a valid xml file.')
 
 @app.route('/ssrf9')
 def fetch_ssrf9():

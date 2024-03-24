@@ -1,4 +1,4 @@
-# API-Versionning
+# SSRF_Lab
 
 Introduction level SSRF discovery labs
 

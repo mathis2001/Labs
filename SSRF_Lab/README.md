@@ -5,6 +5,7 @@ Introduction level SSRF discovery labs
 ## Objective
 
 This Lab do not contain any flag, it have been designed to practice, learn and understand SSRF vulnerabilities and bypasses. 
+The lab contain 10 SSRF vulnerabilities
 
 ## Setup
 

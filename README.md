@@ -1,4 +1,4 @@
-# Offensive_Labs
+# Offensive_Labs
 
 This repository contain voluntary vulnerable Labs and challenges for different types of vulnerabilities.
 

@@ -6,6 +6,7 @@ from io import BytesIO
 from weasyprint import HTML
 from lxml import etree
 from ignore.design import design
+import os
 from werkzeug.utils import secure_filename
 
 app = design.Design(Flask(__name__), __file__, 'SSRF - Lab')

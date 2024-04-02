@@ -2,6 +2,7 @@ from flask import Flask, request, abort, Response
 from flask_restful import Api, Resource, reqparse
 from flasgger import Swagger, swag_from
 from functools import wraps
+import random
 import requests
 import json
 
@@ -35,6 +36,8 @@ swagger = Swagger(app, decorators=[ requires_basic_auth ])
 
 
 missioninfo = json.load(open('missioninfo.json', 'r'))
+
+access_count = 0
 
 
 def jsonresponse(data):
@@ -402,6 +405,56 @@ class missionPublicV1(Resource):
         except:
             return abort(500, 'An error occured')
 
+class weatherPublicV2(Resource):
+    def post(self):
+        """
+        This endpoint use a third party service to check weather. Take care, it is limited to 25 free request by day and +1€ for each additional request...
+        ---
+        tags:
+          - Weather
+        parameters:
+        - in: body
+          consumes:
+            - application/json
+          name: city
+          required: true
+          schema:
+            type: object
+            properties:
+              city:
+                type: string
+        responses:
+          200:
+            description: ...
+          500:
+            description: An error occured
+        """
+        global access_count
+        data = request.get_json()
+        city = data.get('city', None)
+        access_count += 1
+
+        if city:
+            if access_count > 25:
+                return 'Lack of rate limiting can cost money... flag{N0_M0n3y_D0wn}', 200
+
+            else:
+
+                weather_conditions = ['Sunny', 'Cloudy', 'Partly Cloudy', 'Rainy', 'Stormy', 'Snowy']
+                temperature = random.randint(-10, 35)
+
+                weather = random.choice(weather_conditions)
+
+                weather_data = {
+                    'city': city,
+                    'weather': weather,
+                    'temperature': f'{temperature} degrees'
+                }
+
+        try:
+            return jsonresponse(weather_data)
+        except:
+            return abort(500, 'An error occured')
 
 api.add_resource(missionCrewV1, '/api/v1/confidential/missions/<string:id>/crew')
 api.add_resource(missionCrewV2, '/api/v2/confidential/missions/<string:id>/crew')
@@ -413,6 +466,7 @@ api.add_resource(missionDetailsV1, '/api/v1/confidential/missions')
 api.add_resource(missionDetailsV2, '/api/v2/confidential/missions')
 api.add_resource(missionPublicV2, '/api/v2/public/missions')
 api.add_resource(missionPublicV1, '/api/v1/public/missions')
+api.add_resource(weatherPublicV2, '/api/v2/public/weather')
 
 @app.route('/')
 def index():

@@ -4,9 +4,7 @@ Volontary vulnerable REST API integration
 
 ## Objective
 
-3 flags are hidden and can be discovered by exploiting the API.
-
-/!\ Do not use the source code or exploit the Werkzeug debug mode (out of scope)
+4 flags are hidden and can be discovered by exploiting the API.
 
 ## Setup
 

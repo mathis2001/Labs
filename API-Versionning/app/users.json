@@ -1,0 +1,20 @@
+[
+    {
+        "email": "john.doe@example.xyz",
+        "name": "John Doe",
+        "function": "operator",
+        "mission": 1,
+        "active": true,
+        "launchSite": "Vandenberg Space Force Base",
+        "role":"user"
+    },
+    {
+        "email": "jane.smith@example.xyz",
+        "name": "Jane Smith",
+        "function": "operator",
+        "mission": 7,
+        "active": false,
+        "launchsite": "Cap Canaveral",
+        "role":"user"
+    }
+]

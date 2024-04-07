@@ -2,9 +2,66 @@ from flask import Flask, request, abort, Response
 from flask_restful import Api, Resource, reqparse
 from flasgger import Swagger, swag_from
 from functools import wraps
+import jwt
+import re
 import random
 import requests
 import json
+
+app = Flask(__name__)
+app.config["SECRET_KEY"] = "SUPER_SECURE_SECRET"
+api = Api(app)
+
+missioninfo = json.load(open('missioninfo.json', 'r'))
+
+access_count = 0
+
+
+class User:
+    def __init__(self):
+        self.file_path = 'users.json'
+
+    def find_by_email(self, email):
+        with open(self.file_path, 'r') as f:
+            users = json.load(f)
+            for user in users:
+                if user['email'] == email:
+                    return user
+        return None
+
+        def login(self, email, password):
+            return self.find_by_email(email)
+
+def validate_email(email):
+    if not email:
+        return "Email is required"
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        return "Invalid email format"
+    return True
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if "Authorization" in request.headers:
+            token = request.headers["Authorization"].split(" ")[1]
+        if not token:
+            return {
+                "message": "Your are not authenticated.",
+                "data": None,
+                "error": "Unauthorized"
+            }, 401
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user = data
+        except jwt.ExpiredSignatureError:
+            return {'message': 'Token is expired!'}, 401
+        except jwt.InvalidTokenError:
+            return {'message': 'Token is invalid!'}, 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
 
 def requires_basic_auth(f):
 
@@ -29,15 +86,70 @@ def requires_basic_auth(f):
 
     return decorated
 
-app = Flask(__name__)
-api = Api(app)
-
 swagger = Swagger(app, decorators=[ requires_basic_auth ])
 
+@app.route("/api/token", methods=["POST"])
+def login():
+    try:
+        data = request.json
+        if not data or not data.get('email'):
+            return {
+                "message": "Please provide a valid email",
+                "data": None,
+                "error": "Bad request"
+            }, 400
 
-missioninfo = json.load(open('missioninfo.json', 'r'))
+        email = data.get('email')
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            return {
+                "message": "Invalid email format",
+                "data": None,
+                "error": "Bad request"
+            }, 400
 
-access_count = 0
+        user = User().find_by_email(email)
+        if user:
+            try:
+                token_payload = {
+                    "email": email,
+                    "name": user["name"],
+                    "function": user["function"],
+                    "mission": user["mission"],
+                    "active": user["active"],
+                    "launchSite": user["launchSite"],
+                    "role": user["role"]
+                }
+                token = jwt.encode(
+                    token_payload,
+                    app.config["SECRET_KEY"],
+                    algorithm="HS256"
+                )
+
+                return {
+                    "message": "Successfully fetched auth token",
+                    "data": {
+                        "user": email,
+                        "token": token
+                    }
+                }, 200
+            except Exception as e:
+                return {
+                    "error": "Something went wrong",
+                    "message": str(e)
+                }, 500
+        else:
+            return {
+                "message": "User not found",
+                "data": None,
+                "error": "Unauthorized"
+            }, 404
+
+    except Exception as e:
+        return {
+            "message": "Something went wrong!",
+            "error": str(e),
+            "data": None
+        }, 500
 
 
 def jsonresponse(data):
@@ -48,7 +160,41 @@ def jsonresponse(data):
             )
     return response
 
+class CurrentUser(Resource):
+    method_decorators = [token_required]
+
+    def get(self, current_user):
+        """
+        This endpoint show the current user information. (Contact John at the following email to create an account john.doe@example.xyz)
+        ---
+        tags:
+          - Users
+        responses:
+          200:
+            description: ...
+          500:
+            description: Something went wrong
+        """
+        try:
+            role = current_user.get("role")
+
+            if role == "admin":
+                current_user["role"] = "flag{Weak_4uth_Everywhere}"
+            return {
+                "data": {
+                    "user": current_user,
+                    "flag": "flag{S3cured_But_N0t_Secur3d}"
+                }
+            }, 200
+        except Exception as e:
+            return {
+                "error": "Something went wrong",
+                "message": str(e)
+            }, 500
+
+
 class missionCrewV2(Resource):
+    method_decorators = [token_required]
     def get(self, id):
         """
         View the details of the crew for a specific mission
@@ -181,6 +327,7 @@ class missionCrewV1(Resource):
 
 
 class missionIdV2(Resource):
+    method_decorators = [token_required]
     def get(self, id):
         """
         View the details of a specific mission
@@ -215,6 +362,7 @@ class missionIdV1(Resource):
             return abort(404, 'Invalid Id')
 
 class missionDetailsV2(Resource):
+    method_decorators = [token_required]
     def get(self):
         """
         View the full details of a mission
@@ -253,6 +401,7 @@ class missionDetailsV1(Resource):
             return abort(500, 'An error occured')
 
 class missionComV2(Resource):
+    method_decorators = [token_required]
     def get(self, id):
         """
         View the communications details about a mission
@@ -355,6 +504,7 @@ class missionComV1(Resource):
             return abort(404, 'Rocket not launched')
 
 class missionPublicV2(Resource):
+    method_decorators = [token_required]
     def get(self):
         """
         View the Public missions details
@@ -467,6 +617,7 @@ api.add_resource(missionDetailsV2, '/api/v2/confidential/missions')
 api.add_resource(missionPublicV2, '/api/v2/public/missions')
 api.add_resource(missionPublicV1, '/api/v1/public/missions')
 api.add_resource(weatherPublicV2, '/api/v2/public/weather')
+api.add_resource(CurrentUser, '/api/v2/users/me')
 
 @app.route('/')
 def index():

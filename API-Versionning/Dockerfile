@@ -5,6 +5,7 @@ RUN apt update -y; apt install -y supervisor
 RUN pip install Flask flask-restful
 RUN pip install flasgger
 RUN pip install requests
+RUN pip install pyjwt
 
 #Prepare and setup the working directory
 RUN mkdir -p /app

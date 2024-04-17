@@ -613,8 +613,7 @@ class weatherPublicV2(Resource):
             return abort(500, 'An error occured')
 
 class FileREAD(Resource):
-    method_decorators = [token_required]
-    def get(self, current_user, filename):
+    def get(self, filename):
         try:
             return send_from_directory(UPLOAD_DIRECTORY, filename)
         except FileNotFoundError:

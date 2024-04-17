@@ -1,7 +1,11 @@
-from flask import Flask, request, abort, Response
+from flask import Flask, request, abort, Response, send_from_directory
 from flask_restful import Api, Resource, reqparse
 from flasgger import Swagger, swag_from
 from functools import wraps
+import mimetypes
+import uuid
+import os
+import base64
 import jwt
 import re
 import random
@@ -11,6 +15,8 @@ import json
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "SUPER_SECURE_SECRET"
 api = Api(app)
+
+UPLOAD_DIRECTORY =  "uploads"
 
 missioninfo = json.load(open('missioninfo.json', 'r'))
 
@@ -606,6 +612,83 @@ class weatherPublicV2(Resource):
         except:
             return abort(500, 'An error occured')
 
+class FileREAD(Resource):
+    method_decorators = [token_required]
+    def get(self, current_user, filename):
+        try:
+            return send_from_directory(UPLOAD_DIRECTORY, filename)
+        except FileNotFoundError:
+            abort(404, "File not found")
+
+class FileUpload(Resource):
+    method_decorators = [token_required]
+    def post(self, current_user):
+        """
+        This endpoint allow users to upload their own avatar image into the server
+        ---
+        tags:
+          - Users
+        parameters:
+        - in: body
+          consumes:
+            - application/json
+          name: fileinfo
+          required: true
+          schema:
+            type: object
+            properties:
+              filetype:
+                type: string
+              content:
+                type: string
+        responses:
+          200:
+            description: Image uploaded successfully
+          400: 
+            description: Missing 'filetype' or 'content' in JSON data
+          500:
+            description: Failed to decode base64 content
+        """
+        ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+        data = request.json
+        if not data:
+            return abort(400, "No data provided")
+
+        filetype = data.get("filetype")
+        content_base64 = data.get("content")
+
+        if not filetype or not content_base64:
+            return abort(400, "Missing 'filetype' or 'content' in JSON data")
+
+        if not filetype.startswith("image/"):
+            return abort(500, "Invalid filetype")
+
+        extension = filetype.split('/')[1]
+
+        try:
+            content = base64.b64decode(content_base64)
+        except Exception as e:
+            return abort(500, "Failed to decode base64 content")
+
+        if not os.path.exists(UPLOAD_DIRECTORY):
+            os.makedirs(UPLOAD_DIRECTORY)
+
+        filename = f"image_{uuid.uuid4().hex}.{extension}"
+
+        filepath = os.path.join(UPLOAD_DIRECTORY, filename)
+
+        if extension not in ALLOWED_EXTENSIONS:
+            with open(filepath, "wb") as f:
+                f.write(content)
+            response = jsonresponse({"message": "Image uploaded successfully", "filepath": f'/api/v2/uploads/{filename}'})
+            response.headers['X-Flag'] = 'flag{I_L0v3_F1leUplo4ds}'
+        else:    
+            with open(filepath, "wb") as f:
+                f.write(content)
+            response = jsonresponse({"message": "Image uploaded successfully", "filepath": f'/api/v2/uploads/{filename}'})
+        return response
+
 api.add_resource(missionCrewV1, '/api/v1/confidential/missions/<string:id>/crew')
 api.add_resource(missionCrewV2, '/api/v2/confidential/missions/<string:id>/crew')
 api.add_resource(missionIdV1, '/api/v1/confidential/missions/<string:id>/details')
@@ -618,6 +701,8 @@ api.add_resource(missionPublicV2, '/api/v2/public/missions')
 api.add_resource(missionPublicV1, '/api/v1/public/missions')
 api.add_resource(weatherPublicV2, '/api/v2/public/weather')
 api.add_resource(CurrentUser, '/api/v2/users/me')
+api.add_resource(FileUpload, '/api/v2/users/me/avatar')
+api.add_resource(FileREAD, '/api/v2/uploads/<string:filename>')
 
 @app.route('/')
 def index():

@@ -1,5 +1,6 @@
 [
     {
+  	"uuid": "98374974-46c8-4fc7-a773-6e18ca5cddd8",
         "email": "john.doe@example.xyz",
         "name": "John Doe",
         "function": "operator",
@@ -9,6 +10,7 @@
         "role":"user"
     },
     {
+    	"uuid":"07be07f4-286b-4a69-a2f6-b729ccfa7d7e",
         "email": "jane.smith@example.xyz",
         "name": "Jane Smith",
         "function": "operator",

@@ -1,7 +1,7 @@
 version: '3.8'
 services:
     python-flask:
-        container_name: Broken-Access-Lab
+        container_name: API-Versionning
         build:
             context: .
             dockerfile: Dockerfile

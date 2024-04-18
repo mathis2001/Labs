@@ -2,7 +2,8 @@ from flask import Flask, request, abort, Response, send_from_directory
 from flask_restful import Api, Resource, reqparse
 from flasgger import Swagger, swag_from
 from functools import wraps
-import mimetypes
+import time
+import string
 import uuid
 import os
 import base64
@@ -37,13 +38,6 @@ class User:
 
         def login(self, email, password):
             return self.find_by_email(email)
-
-def validate_email(email):
-    if not email:
-        return "Email is required"
-    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-        return "Invalid email format"
-    return True
 
 def token_required(f):
     @wraps(f)
@@ -107,11 +101,7 @@ def login():
 
         email = data.get('email')
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-            return {
-                "message": "Invalid email format",
-                "data": None,
-                "error": "Bad request"
-            }, 400
+            return abort(400, "Invalid email format")
 
         user = User().find_by_email(email)
         if user:
@@ -123,6 +113,7 @@ def login():
                     "mission": user["mission"],
                     "active": user["active"],
                     "launchSite": user["launchSite"],
+                    "manager": user["manager"],
                     "role": user["role"]
                 }
                 token = jwt.encode(
@@ -688,6 +679,87 @@ class FileUpload(Resource):
             response = jsonresponse({"message": "Image uploaded successfully", "filepath": f'/api/v2/uploads/{filename}'})
         return response
 
+
+
+def confirmation_link():
+    length=16
+    current_time = int(time.time())
+    random.seed(current_time)
+
+    characters = string.ascii_letters + string.digits
+    confirmation_code = ''.join(random.choice(characters) for _ in range(length))
+
+    link = f"https://example.xyz/confirm/{confirmation_code}"
+    return link
+
+class DeleteAccount(Resource):
+    link_user_map = {}
+    duplicates = []
+    method_decorators = [token_required]
+
+    def delete(current_user, email):
+        """
+        This endpoint is used to delete an account based on the provided email address.
+        ---
+        tags:
+          - Users
+        parameters:
+        - in: body
+          consumes:
+            - application/json
+          name: email
+          required: true
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+        responses:
+          200:
+            description: Deletion confirmation link sent successfully
+          400: 
+            description: Invalid email format
+          500:
+            description: Email not provided
+        """        
+        data = request.json
+        email = data.get('email')
+
+        if not email:
+            return abort(500, 'Email not provided')
+
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            return abort(400, "Invalid email format")
+
+        link = confirmation_link()
+        user = User().find_by_email(email)
+        if user:
+            if link in DeleteAccount.link_user_map:
+                existing_user = DeleteAccount.link_user_map[link]
+                if existing_user != email:
+                    DeleteAccount.duplicates.append(link)
+            else:
+                DeleteAccount.link_user_map[link] = email
+
+            username = user["name"]
+            response = jsonresponse({
+                "message": "Deletion link sent successfully",
+                "mock": {
+                    "from": "noreply@example.xyz",
+                    "to": email,
+                    "subject": "Deletion confirmation link",
+                    "body": f"Hi {username},\r\n\r\nWe have received a request to delete your account. To confirm the deletion of your account, please click on the following link:\r\n\r\n{link}\r\n\r\nIf you did not initiate this action, please ignore this email or contact our support team immediately.\r\n\r\nBest regards,\r\nRedacted Support Team"
+                }
+            })
+
+            if DeleteAccount.duplicates:
+                response.headers['X-Flag'] = 'flag{Seems_U_W0n_Th3-R4ce}'
+
+            return response
+        else:
+            return abort(404, "No user found with this email")
+
+
 api.add_resource(missionCrewV1, '/api/v1/confidential/missions/<string:id>/crew')
 api.add_resource(missionCrewV2, '/api/v2/confidential/missions/<string:id>/crew')
 api.add_resource(missionIdV1, '/api/v1/confidential/missions/<string:id>/details')
@@ -702,6 +774,7 @@ api.add_resource(weatherPublicV2, '/api/v2/public/weather')
 api.add_resource(CurrentUser, '/api/v2/users/me')
 api.add_resource(FileUpload, '/api/v2/users/me/avatar')
 api.add_resource(FileREAD, '/api/v2/uploads/<string:filename>')
+api.add_resource(DeleteAccount, '/api/v2/users/delete')
 
 @app.route('/')
 def index():

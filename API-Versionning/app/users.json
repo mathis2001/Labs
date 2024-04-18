@@ -7,6 +7,7 @@
         "mission": 1,
         "active": true,
         "launchSite": "Vandenberg Space Force Base",
+        "manager": "Jane Smith",
         "role":"user"
     },
     {
@@ -14,9 +15,9 @@
         "email": "jane.smith@example.xyz",
         "name": "Jane Smith",
         "function": "operator",
-        "mission": 7,
-        "active": false,
-        "launchsite": "Cap Canaveral",
+        "mission": 1,
+        "active": true,
+        "launchsite": "Vandenberg Space Force Base",
         "role":"user"
     }
 ]

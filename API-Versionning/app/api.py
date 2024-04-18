@@ -689,8 +689,8 @@ def confirmation_link():
     characters = string.ascii_letters + string.digits
     confirmation_code = ''.join(random.choice(characters) for _ in range(length))
 
-    link = f"https://example.xyz/confirm/{confirmation_code}"
-    return link
+    link = f"http://127.0.0.1:1337/confirm/{confirmation_code}"
+    return link, confirmation_code
 
 class DeleteAccount(Resource):
     link_user_map = {}
@@ -725,21 +725,22 @@ class DeleteAccount(Resource):
         data = request.json
         email = data.get('email')
 
+
         if not email:
             return abort(500, 'Email not provided')
 
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             return abort(400, "Invalid email format")
 
-        link = confirmation_link()
+        link, confirmation_code = confirmation_link()
         user = User().find_by_email(email)
         if user:
-            if link in DeleteAccount.link_user_map:
-                existing_user = DeleteAccount.link_user_map[link]
+            if confirmation_code in DeleteAccount.link_user_map:
+                existing_user = DeleteAccount.link_user_map[confirmation_code]
                 if existing_user != email:
-                    DeleteAccount.duplicates.append(link)
+                    DeleteAccount.duplicates.append(confirmation_code)
             else:
-                DeleteAccount.link_user_map[link] = email
+                DeleteAccount.link_user_map[confirmation_code] = email
 
             username = user["name"]
             response = jsonresponse({
@@ -759,6 +760,11 @@ class DeleteAccount(Resource):
         else:
             return abort(404, "No user found with this email")
 
+class DeletionConfirmation(Resource):
+    def get(self, confirmation_code):
+        email = DeleteAccount.link_user_map[confirmation_code]
+        return jsonresponse({"message":f"account {email} successfully deleted"})
+
 
 api.add_resource(missionCrewV1, '/api/v1/confidential/missions/<string:id>/crew')
 api.add_resource(missionCrewV2, '/api/v2/confidential/missions/<string:id>/crew')
@@ -775,6 +781,7 @@ api.add_resource(CurrentUser, '/api/v2/users/me')
 api.add_resource(FileUpload, '/api/v2/users/me/avatar')
 api.add_resource(FileREAD, '/api/v2/uploads/<string:filename>')
 api.add_resource(DeleteAccount, '/api/v2/users/delete')
+api.add_resource(DeletionConfirmation, '/confirm/<string:confirmation_code>')
 
 @app.route('/')
 def index():

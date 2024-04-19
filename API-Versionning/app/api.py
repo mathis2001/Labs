@@ -177,17 +177,64 @@ class CurrentUser(Resource):
 
             if role == "admin":
                 current_user["role"] = "flag{Weak_4uth_Everywhere}"
-            return {
+            return jsonresponse({
                 "data": {
                     "user": current_user,
                     "flag": "flag{S3cured_But_N0t_Secur3d}"
                 }
-            }, 200
-        except Exception as e:
-            return {
-                "error": "Something went wrong",
-                "message": str(e)
-            }, 500
+            })
+        except:
+            return abort(500, "An error occured")
+
+    def patch(self, current_user):
+        """
+        Edit the current user information.
+        ---
+        tags:
+          - Users
+        parameters:
+        - in: body
+          name: user info
+          consumes:
+            - application/json
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+              name:
+                type: string
+              function:
+                type: string
+              mission:
+                type: integer 
+        responses:
+          200:
+            description: ...
+          500:
+            description: Something went wrong
+        """
+        try:
+            data = request.json
+            email = data.get("email")
+            name = data.get("name")
+
+            current_user.update(data)
+
+            if not email:
+                return abort(400, "Parameter email missing")
+            if not name:
+                return abort(400, "Parameter name missing")
+            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                return abort(400, "Invalid email format")
+
+            if current_user.get("role") == "admin":
+                return jsonresponse({"message":"User successfully updated", "data": current_user, "flag":"flag{All0w3d_F34lds_Mus7_B3_Sp3c1fi3D}"})
+            else:
+                return jsonresponse({"message":"User successfully updated", "data": current_user})
+        except:
+            return abort(500, "An error occured")
+     
 
 
 class missionCrewV2(Resource):

@@ -4,7 +4,7 @@ Volontary vulnerable REST API integration
 
 ## Objective
 
-8 flags are hidden and can be discovered by exploiting the API.
+9 flags are hidden and can be discovered by exploiting the API.
 
 ## Setup
 

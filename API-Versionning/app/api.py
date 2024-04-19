@@ -214,28 +214,68 @@ class CurrentUser(Resource):
           500:
             description: Something went wrong
         """
-        try:
-            data = request.json
-            email = data.get("email")
-            name = data.get("name")
+        return abort(500, "Not implemented")
 
-            current_user.update(data)
+def isAdmin(user):
+    if user["role"] == "admin":
+        return 1
+    else:
+        return 0
 
-            if not email:
-                return abort(400, "Parameter email missing")
-            if not name:
-                return abort(400, "Parameter name missing")
-            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-                return abort(400, "Invalid email format")
+class AddUserV2(Resource):
+    method_decorators = [token_required]
+    def put(self, current_user):
+        """
+        Edit the current user information.
+        ---
+        tags:
+          - Users
+        parameters:
+        - in: body
+          name: user info
+          consumes:
+            - application/json
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+              name:
+                type: string
+              function:
+                type: string
+              mission:
+                type: integer
+              manager:
+                type: string
+              active:
+                type: boolean
+              role:
+                type: string
+        responses:
+          200:
+            description: ...
+          500:
+            description: Something went wrong
+        """
+        data = request.json
+        email = data.get("email")
+        current_user_email = current_user.get("email")
 
-            if current_user.get("role") == "admin":
-                return jsonresponse({"message":"User successfully updated", "data": current_user, "flag":"flag{All0w3d_F34lds_Mus7_B3_Sp3c1fi3D}"})
-            else:
-                return jsonresponse({"message":"User successfully updated", "data": current_user})
-        except:
-            return abort(500, "An error occured")
+        if not email:
+            return abort(400, "Parameter email missing")
+        if not re.match(r"[^@]+@example\.xyz$", email):
+            return abort(400, "Invalid company email format (@example.xyz)")
+
+        user = User().find_by_email(current_user_email)
+        userinfo = {"isAdmin":isAdmin(user), "email":email}
      
+        userinfo.update(data)
 
+        if userinfo["isAdmin"] == 1:
+            return jsonresponse({"message":f"User {email} successfully created", "flag":"flag{All0w3d_F34lds_Mus7_B3_Sp3c1fi3D}"})
+        else:
+            return abort(403, f"Only admin users can create accounts")
 
 class missionCrewV2(Resource):
     method_decorators = [token_required]
@@ -830,6 +870,7 @@ api.add_resource(FileUpload, '/api/v2/users/me/avatar')
 api.add_resource(FileREAD, '/api/v2/uploads/<string:filename>')
 api.add_resource(DeleteAccount, '/api/v2/users/delete')
 api.add_resource(DeletionConfirmation, '/confirm/<string:confirmation_code>')
+api.add_resource(AddUserV2, '/api/v2/users/add')
 
 @app.route('/')
 def index():

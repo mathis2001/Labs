@@ -260,20 +260,43 @@ class AddUserV2(Resource):
         """
         data = request.json
         email = data.get("email")
+        name = data.get("name")
+        active = data.get("active")
+        function = data.get("function")
+        role = data.get("role")
+        manager = data.get("manager")
+        launchSite = data.get("launchSite")
+        mission = data.get("mission")
+
         current_user_email = current_user.get("email")
 
         if not email:
-            return abort(400, "Parameter email missing")
+            return abort(400, "Parameter email is missing")
+        if not role:
+            return abort(400, "Parameter role is missing")
+        if not active:
+            return abort(400, "Parameter active is missing")
+        elif not isinstance(active, bool):
+            return abort(400, "active parameter must be a boolean") 
+        if not name:
+            name = "undefined"
+        if not function:
+            function = "undefined"
+        if not manager:
+            manager = "undefined"
+        if not launchSite:
+            launchSite = "undefined"
+
         if not re.match(r"[^@]+@example\.xyz$", email):
             return abort(400, "Invalid company email format (@example.xyz)")
 
         user = User().find_by_email(current_user_email)
-        userinfo = {"isAdmin":isAdmin(user), "email":email}
+        userinfo = {"isAdmin":isAdmin(user), "email":email, "name":name, "active":active, "function":function, "manager":manager, "launchSite":launchSite}
      
         userinfo.update(data)
 
         if userinfo["isAdmin"] == 1:
-            return jsonresponse({"message":f"User {email} successfully created", "flag":"flag{All0w3d_F34lds_Mus7_B3_Sp3c1fi3D}"})
+            return jsonresponse({"message":f"User {email} successfully created", "userinfo":userinfo, "flag":"flag{All0w3d_F34lds_Mus7_B3_Sp3c1fi3D}"})
         else:
             return abort(403, f"Only admin users can create accounts")
 

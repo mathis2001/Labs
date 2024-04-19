@@ -383,13 +383,6 @@ class missionDetailsV1(Resource):
 
         fullmissioninfo = json.load(open('missioninfo.json', 'r'))
 
-        for mission_id, mission_data in fullmissioninfo['missions'].items():
-            if request.path == '/api/v1/confidential/missions':
-                encryption_key = mission_data.get('systems').get('Communications').get('encryption').get('encryptionKey')
-                mission_data['systems']['Communications']['encryption']['encryptionKey'] = '*' * len(encryption_key)
-            else:
-                pass
-
         details = {'mission': fullmissioninfo['missions']}
 
         details = {'mission': missioninfo['missions']}

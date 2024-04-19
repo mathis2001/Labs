@@ -162,7 +162,7 @@ class CurrentUser(Resource):
 
     def get(self, current_user):
         """
-        This endpoint show the current user information. (Contact John at the following email to create an account john.doe@example.xyz)
+        View the current user information. (Contact John at the following email to create an account john.doe@example.xyz)
         ---
         tags:
           - Users
@@ -215,7 +215,7 @@ class missionCrewV2(Resource):
 
     def post(self, id):
         """
-        Successfully added crew member to the mission
+        Add a crew member to a mission
         ---
         tags:
           - Crew
@@ -252,7 +252,7 @@ class missionCrewV2(Resource):
 
     def delete(self, id):
         """
-        Successfully deleted crew member from the mission
+        Delete a crew member from a mission
         ---
         tags:
           - Crew
@@ -304,20 +304,22 @@ class missionCrewV1(Resource):
         return abort(500, 'An error occured')
 
     def delete(self,id):
-        parser = reqparse.RequestParser()
-        parser.add_argument('memberID', type=str, required=True, help='parameter is missing: memberID')
-        args = parser.parse_args()
+        data = request.json
+        memberID = data.get("memberID")
+
+        if not memberID:
+            return abort(404, "Parameter memberID missing")
 
         try:
             mission = missioninfo['missions'][id]
             crew_members = mission['crew']
-            member_index = next((index for (index, member) in enumerate(crew_members) if member['memberID'] == args.memberID), None)
+            member_index = next((index for (index, member) in enumerate(crew_members) if member['memberID'] == memberID), None)
 
             if member_index is not None:
                 del crew_members[member_index]
                 return 'Successfully deleted crew member from the mission, well done ! flag{N0_St4rs_4nym0re}', 200
             else:
-                return abort(404, f'Member not found for id: {args.memberID}')
+                return abort(404, f'Member not found for id: {memberID}')
         except KeyError:
             return abort(404, 'Invalid mission id')
 
@@ -465,13 +467,11 @@ class missionComV1(Resource):
             return abort(404, 'Invalid Id')
 
     def patch(self, id):
-        parser = reqparse.RequestParser()
-        parser.add_argument('callback', type=str, required=False)
-        args = parser.parse_args()
+        data = request.json
         if id == "1":
             try:
                 mission = missioninfo['missions'][id]
-                callback_url = args['callback']
+                callback_url = data.get("callback")
 
                 if 'Communications' in mission['systems']:
                     mission['systems']['Communications']['messages']['callback'] = callback_url
@@ -488,9 +488,9 @@ class missionComV1(Resource):
                         response = requests.post(callback_url, data=messages_content, headers=headers)
 
                         if response.status_code == 200:
-                            return 'Callback URL changed successfully', 200
+                            return jsonresponse({"message":"Callback URL changed successfully"})
                         else:
-                            return f'Error sending request to {callback_url}', response.status_code
+                            return abort(500, f"Error sending request to {callback_url} ({response.status_code})")
                     else:
                         return abort(403, 'Invalid callback_url')
                 else:
@@ -558,7 +558,7 @@ class weatherPublicV2(Resource):
         This endpoint use a third party service to check weather. Take care, it is limited to 25 free request by day and +1€ for each additional request...
         ---
         tags:
-          - Weather
+          - Public
         parameters:
         - in: body
           consumes:
@@ -570,6 +570,8 @@ class weatherPublicV2(Resource):
             properties:
               city:
                 type: string
+              day:
+                type: string
         responses:
           200:
             description: ...
@@ -577,8 +579,8 @@ class weatherPublicV2(Resource):
             description: An error occured
         """
         global access_count
-        data = request.get_json()
-        city = data.get('city', None)
+        data = request.json
+        city = data.get('city')
         access_count += 1
 
         if city:
@@ -597,6 +599,8 @@ class weatherPublicV2(Resource):
                     'weather': weather,
                     'temperature': f'{temperature} degrees'
                 }
+        else:
+            return abort(400, "Parameter city missing")
 
         try:
             return jsonresponse(weather_data)
@@ -614,7 +618,7 @@ class FileUpload(Resource):
     method_decorators = [token_required]
     def post(self, current_user):
         """
-        This endpoint allow users to upload their own avatar image into the server
+        Upload an avatar image
         ---
         tags:
           - Users
@@ -649,7 +653,7 @@ class FileUpload(Resource):
         content_base64 = data.get("content")
 
         if not filetype or not content_base64:
-            return abort(400, "Missing 'filetype' or 'content' in JSON data")
+            return abort(400, "Parameters missing in JSON data")
 
         if not filetype.startswith("image/"):
             return abort(500, "Invalid filetype")
@@ -668,15 +672,17 @@ class FileUpload(Resource):
 
         filepath = os.path.join(UPLOAD_DIRECTORY, filename)
 
+        response = {"message": "Image uploaded successfully", "filepath": f'/api/v2/uploads/{filename}', "filesize":len(content)}
+
         if extension not in ALLOWED_EXTENSIONS:
             with open(filepath, "wb") as f:
                 f.write(content)
-            response = jsonresponse({"message": "Image uploaded successfully", "filepath": f'/api/v2/uploads/{filename}'})
+            response = jsonresponse(response)
             response.headers['X-Flag'] = 'flag{I_L0v3_F1leUplo4ds}'
         else:    
             with open(filepath, "wb") as f:
                 f.write(content)
-            response = jsonresponse({"message": "Image uploaded successfully", "filepath": f'/api/v2/uploads/{filename}'})
+            response = jsonresponse(response)
         return response
 
 
@@ -699,7 +705,7 @@ class DeleteAccount(Resource):
 
     def delete(current_user, email):
         """
-        This endpoint is used to delete an account based on the provided email address.
+        Delete a user account
         ---
         tags:
           - Users
@@ -713,6 +719,8 @@ class DeleteAccount(Resource):
             type: object
             properties:
               email:
+                type: string
+              reason:
                 type: string
         responses:
           200:

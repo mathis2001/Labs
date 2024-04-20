@@ -298,8 +298,8 @@ class AddUserV2(Resource):
         if existing_user:
             return abort(500, f"User {email} already existing")
 
-        user = User().find_by_email(current_user_email)
-        jsondata = {"isAdmin":isAdmin(user), "userinfo":{"email":email, "name":name, "active":active, "role":role, "function":function, "manager":manager, "launchSite":launchSite}}
+        #user = User().find_by_email(current_user_email)
+        jsondata = {"isAdmin":isAdmin(current_user), "userinfo":{"email":email, "name":name, "active":active, "role":role, "function":function, "manager":manager, "launchSite":launchSite}}
      
         jsondata.update(data)
 

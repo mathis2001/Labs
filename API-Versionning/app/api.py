@@ -254,7 +254,11 @@ class AddUserV2(Resource):
                 type: string
         responses:
           200:
-            description: ...
+            description: User successfully created
+          400:
+            description: Bad Request
+          403:
+            description: Only admin users can create account (the check is done through the var "XXXX" that use a function checking the current user role, his returned value is 1 or 0)
           500:
             description: Something went wrong
         """
@@ -290,13 +294,17 @@ class AddUserV2(Resource):
         if not re.match(r"[^@]+@example\.xyz$", email):
             return abort(400, "Invalid company email format (@example.xyz)")
 
-        user = User().find_by_email(current_user_email)
-        userinfo = {"isAdmin":isAdmin(user), "email":email, "name":name, "active":active, "function":function, "manager":manager, "launchSite":launchSite}
-     
-        userinfo.update(data)
+        existing_user = User().find_by_email(email)
+        if existing_user:
+            return abort(500, f"User {email} already existing")
 
-        if userinfo["isAdmin"] == 1:
-            return jsonresponse({"message":f"User {email} successfully created", "userinfo":userinfo, "flag":"flag{All0w3d_F34lds_Mus7_B3_Sp3c1fi3D}"})
+        user = User().find_by_email(current_user_email)
+        jsondata = {"isAdmin":isAdmin(user), "userinfo":{"email":email, "name":name, "active":active, "role":role, "function":function, "manager":manager, "launchSite":launchSite}}
+     
+        jsondata.update(data)
+
+        if jsondata["isAdmin"] == 1:
+            return jsonresponse({"message":f"User {email} successfully created", "data":jsondata["userinfo"], "flag":"flag{All0w3d_F34lds_Mus7_B3_Sp3c1fi3D}"})
         else:
             return abort(403, f"Only admin users can create accounts")
 

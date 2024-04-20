@@ -17,7 +17,8 @@
         "function": "operator",
         "mission": 1,
         "active": true,
-        "launchsite": "Vandenberg Space Force Base",
+        "launchSite": "Vandenberg Space Force Base",
+        "manager":"Jane Smith",
         "role":"user"
     }
 ]

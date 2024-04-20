@@ -260,7 +260,6 @@ class CurrentUser(Resource):
         manager = data.get("manager")
         launchSite = data.get("launchSite")
         mission = data.get("mission")
-        global roles
  
         if role:
             abort(403, "The current user does not have the right to change his role")
@@ -292,6 +291,7 @@ class CurrentUser(Resource):
             flag = "flag{V4lidat1ons_Mus7_B3_D0n3_Ev3rywh3re}"
             response = {"message":"Current User updated successfully (Go check the user information for the provided new email to get the flag)"}
         else:
+            flag = "No email validation ?"
             response = {"message":"Current User updated successfully"}
 
         jsondata = {"email":new_email, "name":flag, "active":active, "role":role, "function":function, "manager":manager, "launchSite":launchSite, "mission":mission}

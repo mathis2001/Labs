@@ -226,7 +226,7 @@ class AddUserV2(Resource):
     method_decorators = [token_required]
     def put(self, current_user):
         """
-        Edit the current user information.
+        Create a new account.
         ---
         tags:
           - Users

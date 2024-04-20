@@ -23,6 +23,8 @@ missioninfo = json.load(open('missioninfo.json', 'r'))
 
 access_count = 0
 
+roles = ["user","admin"]
+
 
 class User:
     def __init__(self):
@@ -38,6 +40,27 @@ class User:
 
         def login(self, email, password):
             return self.find_by_email(email)
+
+    def save_user(self, user_data):
+        with open(self.file_path, 'r+') as f:
+            users = json.load(f)
+            users.append(user_data)
+            f.seek(0)
+            json.dump(users, f, indent=4)
+
+    def update_user(self, email, new_data):
+        with open(self.file_path, 'r+') as f:
+            users = json.load(f)
+            for user in users:
+                if user['email'] == email:
+                    user.update(new_data)
+                    break
+            else:
+                return None
+
+            f.seek(0)
+            json.dump(users, f, indent=4)
+
 
 def token_required(f):
     @wraps(f)
@@ -87,6 +110,12 @@ def requires_basic_auth(f):
     return decorated
 
 swagger = Swagger(app, decorators=[ requires_basic_auth ])
+
+def isAdmin(user):
+    if user["role"] == "admin":
+        return 1
+    else:
+        return 0
 
 @app.route("/api/token", methods=["POST"])
 def login():
@@ -200,7 +229,7 @@ class CurrentUser(Resource):
           schema:
             type: object
             properties:
-              email:
+              new_email:
                 type: string
               name:
                 type: string
@@ -208,19 +237,68 @@ class CurrentUser(Resource):
                 type: string
               mission:
                 type: integer 
+              role:
+                type: string
+              launchSite:
+                type: string
+              manager:
+                type: string
+              active:
+                type: boolean
         responses:
           200:
             description: ...
           500:
             description: Something went wrong
         """
-        return abort(500, "Not implemented")
+        data = request.json
+        new_email = data.get("new_email")
+        name = data.get("name")
+        active = data.get("active")
+        function = data.get("function")
+        role = data.get("role")
+        manager = data.get("manager")
+        launchSite = data.get("launchSite")
+        mission = data.get("mission")
+        global roles
+ 
+        if role:
+            abort(403, "The current user does not have the right to change his role")
+        else:
+            role = current_user["role"]
 
-def isAdmin(user):
-    if user["role"] == "admin":
-        return 1
-    else:
-        return 0
+        if active:    
+            if not isinstance(active, bool):
+                return abort(400, "active parameter must be a boolean")
+
+        if isAdmin(current_user) == 0:
+            if active != current_user["active"]:
+                active = current_user["active"]
+            if manager != current_user["manager"]:
+                manager = current_user["manager"]
+            if launchSite != current_user["launchSite"]:
+                launchSite = current_user["launchSite"]
+            if mission != current_user["mission"]:
+                mission = current_user["mission"]
+
+        if not new_email:
+            new_email = current_user["email"]
+
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", new_email):
+            return abort(400, "Invalid email format")
+
+        existing_user = User().find_by_email(new_email)
+        if existing_user:
+            flag = "flag{V4lidat1ons_Mus7_B3_D0n3_Ev3rywh3re}"
+            response = {"message":"Current User updated successfully (Go check the user information for the provided new email to get the flag)"}
+        else:
+            response = {"message":"Current User updated successfully"}
+
+        jsondata = {"email":new_email, "name":flag, "active":active, "role":role, "function":function, "manager":manager, "launchSite":launchSite, "mission":mission}
+
+        User().update_user(current_user["email"], jsondata)
+        return jsonresponse(response)
+
 
 class AddUserV2(Resource):
     method_decorators = [token_required]
@@ -271,13 +349,14 @@ class AddUserV2(Resource):
         manager = data.get("manager")
         launchSite = data.get("launchSite")
         mission = data.get("mission")
-
-        current_user_email = current_user.get("email")
+        global roles
 
         if not email:
             return abort(400, "Parameter email is missing")
         if not role:
             return abort(400, "Parameter role is missing")
+        if role not in roles:
+            return abort(400, "Role must be 'user' or 'admin'")
         if not active:
             return abort(400, "Parameter active is missing")
         elif not isinstance(active, bool):
@@ -290,6 +369,8 @@ class AddUserV2(Resource):
             manager = "undefined"
         if not launchSite:
             launchSite = "undefined"
+        if not mission:
+            mission = 0
 
         if not re.match(r"[^@]+@example\.xyz$", email):
             return abort(400, "Invalid company email format (@example.xyz)")
@@ -298,12 +379,12 @@ class AddUserV2(Resource):
         if existing_user:
             return abort(500, f"User {email} already existing")
 
-        #user = User().find_by_email(current_user_email)
-        jsondata = {"isAdmin":isAdmin(current_user), "userinfo":{"email":email, "name":name, "active":active, "role":role, "function":function, "manager":manager, "launchSite":launchSite}}
+        jsondata = {"isAdmin":isAdmin(current_user), "userinfo":{"email":email, "name":name, "active":active, "role":role, "function":function, "manager":manager, "launchSite":launchSite, "mission":mission}}
      
         jsondata.update(data)
 
         if jsondata["isAdmin"] == 1:
+            User().save_user(jsondata["userinfo"])
             return jsonresponse({"message":f"User {email} successfully created", "data":jsondata["userinfo"], "flag":"flag{All0w3d_F34lds_Mus7_B3_Sp3c1fi3D}"})
         else:
             return abort(403, f"Only admin users can create accounts")
